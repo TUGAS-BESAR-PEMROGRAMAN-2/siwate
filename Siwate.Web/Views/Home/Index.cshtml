@@ -2,62 +2,171 @@
     ViewData["Title"] = "Beranda";
 }
 
-<div class="text-center py-16 px-4 sm:px-6 lg:px-8">
-    <h1 class="text-4xl font-extrabold text-slate-900 sm:text-5xl sm:tracking-tight lg:text-6xl">
-        Simulasi Wawancara <span class="text-brand-600">Cerdas</span>
-    </h1>
-    <p class="mt-4 max-w-2xl mx-auto text-xl text-slate-500">
-        Latih jawaban wawancara kerja Anda dengan bantuan AI. Dapatkan penilaian instan dan feedback yang membangun untuk meningkatkan peluang karir Anda.
-    </p>
-    <div class="mt-10 flex justify-center gap-4">
-        @if (User.Identity.IsAuthenticated)
+<!-- Hero Section with Gradient Background -->
+<div class="relative overflow-hidden">
+    <!-- Gradient Background -->
+    <div class="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 -z-10"></div>
+    
+    <!-- Animated Background Elements -->
+    <div class="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-pulse"></div>
+    <div class="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
+    
+    <div class="relative text-center py-20 px-4 sm:px-6 lg:px-8">
+        <!-- Badge -->
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-slate-200 shadow-sm mb-8">
+            <svg class="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+            </svg>
+            <span class="text-sm font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Powered by AI Machine Learning</span>
+        </div>
+        
+        <!-- Main Heading -->
+        <h1 class="text-5xl md:text-6xl lg:text-7xl font-extrabold text-slate-900 tracking-tight leading-tight">
+            Simulasi Wawancara <br>
+            <span class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">Cerdas & Personal</span>
+        </h1>
+        
+        <!-- Subheading -->
+        <p class="mt-6 max-w-3xl mx-auto text-xl md:text-2xl text-slate-600 leading-relaxed">
+            Latih kemampuan wawancara kerja Anda dengan bantuan <span class="font-semibold text-indigo-600">Artificial Intelligence</span>. 
+            Dapatkan penilaian instan dan feedback yang membangun untuk meningkatkan peluang karir Anda.
+        </p>
+        
+        <!-- CTA Buttons -->
+        <div class="mt-12 flex flex-col sm:flex-row justify-center gap-4">
+            @if (User.Identity.IsAuthenticated)
+            {
+                <a asp-controller="Interview" asp-action="Index" class="group relative inline-flex items-center justify-center gap-2 px-10 py-4 text-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:scale-105 transition-all">
+                    <svg class="w-6 h-6 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    <span>Mulai Simulasi</span>
+                </a>
+                <a asp-controller="Interview" asp-action="History" class="inline-flex items-center justify-center gap-2 px-10 py-4 text-lg font-semibold text-indigo-700 bg-white rounded-2xl border-2 border-indigo-200 hover:border-indigo-300 hover:bg-indigo-50 shadow-md hover:shadow-lg transition-all">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>Lihat Riwayat</span>
+                </a>
+            }
+            else
+            {
+                <a asp-controller="Account" asp-action="Register" class="group relative inline-flex items-center justify-center gap-2 px-10 py-4 text-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:scale-105 transition-all">
+                    <span>Daftar Sekarang</span>
+                    <svg class="w-6 h-6 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                    </svg>
+                </a>
+                <a asp-controller="Account" asp-action="Login" class="inline-flex items-center justify-center gap-2 px-10 py-4 text-lg font-semibold text-indigo-700 bg-white rounded-2xl border-2 border-indigo-200 hover:border-indigo-300 hover:bg-indigo-50 shadow-md hover:shadow-lg transition-all">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                    </svg>
+                    <span>Masuk</span>
+                </a>
+            }
+        </div>
+        
+        <!-- Trust Indicators -->
+        <div class="mt-16 flex flex-wrap justify-center gap-8 text-center">
+            <div>
+                <p class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">100%</p>
+                <p class="text-sm text-slate-500 mt-1">Gratis</p>
+            </div>
+            <div class="w-px bg-slate-200"></div>
+            <div>
+                <p class="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">AI</p>
+                <p class="text-sm text-slate-500 mt-1">Machine Learning</p>
+            </div>
+            <div class="w-px bg-slate-200"></div>
+            <div>
+                <p class="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Instant</p>
+                <p class="text-sm text-slate-500 mt-1">Feedback Real-time</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Section Header -->
+        <div class="text-center mb-16">
+            <h2 class="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
+                Mengapa Memilih <span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">SIWATE</span>?
+            </h2>
+            <p class="text-xl text-slate-600 max-w-2xl mx-auto">
+                Platform latihan wawancara kerja terlengkap dengan teknologi AI terdepan
+            </p>
+        </div>
+        
+        <!-- Feature Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Feature 1 -->
+            <div class="group relative bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 border-2 border-blue-100 hover:border-blue-300 hover:shadow-xl hover:scale-105 transition-all duration-300">
+                <div class="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-full blur-2xl group-hover:blur-3xl transition-all"></div>
+                <div class="relative">
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl flex items-center justify-center mb-6 text-white shadow-lg shadow-blue-500/30 group-hover:scale-110 transition-transform">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-3">Pertanyaan Realistis</h3>
+                    <p class="text-slate-600 leading-relaxed">Kumpulan pertanyaan yang sering muncul dalam wawancara kerja profesional, disesuaikan dengan standar industri terkini.</p>
+                </div>
+            </div>
+
+            <!-- Feature 2 -->
+            <div class="group relative bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-8 border-2 border-indigo-100 hover:border-indigo-300 hover:shadow-xl hover:scale-105 transition-all duration-300">
+                <div class="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-indigo-400/20 to-purple-400/20 rounded-full blur-2xl group-hover:blur-3xl transition-all"></div>
+                <div class="relative">
+                    <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center mb-6 text-white shadow-lg shadow-indigo-500/30 group-hover:scale-110 transition-transform">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-3">Penilaian AI</h3>
+                    <p class="text-slate-600 leading-relaxed">Analisis jawaban menggunakan Machine Learning untuk memberikan skor objektif dan akurat berdasarkan kualitas jawaban Anda.</p>
+                </div>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="group relative bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-8 border-2 border-purple-100 hover:border-purple-300 hover:shadow-xl hover:scale-105 transition-all duration-300">
+                <div class="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-2xl group-hover:blur-3xl transition-all"></div>
+                <div class="relative">
+                    <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mb-6 text-white shadow-lg shadow-purple-500/30 group-hover:scale-110 transition-transform">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-3">Feedback Membangun</h3>
+                    <p class="text-slate-600 leading-relaxed">Dapatkan saran perbaikan yang detail untuk meningkatkan kualitas jawaban dan performa wawancara Anda secara keseluruhan.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA Section -->
+<div class="relative py-20 overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600"></div>
+    <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjEiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-20"></div>
+    
+    <div class="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+        <h2 class="text-4xl md:text-5xl font-bold text-white mb-6">
+            Siap Tingkatkan Skill Wawancara Anda?
+        </h2>
+        <p class="text-xl text-white/90 mb-10">
+            Bergabunglah dengan ribuan pengguna yang telah meningkatkan kemampuan wawancara mereka
+        </p>
+        @if (!User.Identity.IsAuthenticated)
         {
-             <a asp-controller="Interview" asp-action="Index" class="px-8 py-3 border border-transparent text-base font-medium rounded-full text-white bg-brand-600 hover:bg-brand-700 md:py-4 md:text-lg md:px-10 shadow-lg hover:shadow-xl transition-all">
-                Mulai Simulasi
-            </a>
-            <a asp-controller="Interview" asp-action="History" class="px-8 py-3 border border-transparent text-base font-medium rounded-full text-brand-700 bg-brand-100 hover:bg-brand-200 md:py-4 md:text-lg md:px-10 transition-all">
-                Lihat Riwayat
-            </a>
-        }
-        else
-        {
-            <a asp-controller="Account" asp-action="Register" class="px-8 py-3 border border-transparent text-base font-medium rounded-full text-white bg-brand-600 hover:bg-brand-700 md:py-4 md:text-lg md:px-10 shadow-lg hover:shadow-xl transition-all">
-                Daftar Sekarang
-            </a>
-            <a asp-controller="Account" asp-action="Login" class="px-8 py-3 border border-transparent text-base font-medium rounded-full text-brand-700 bg-brand-100 hover:bg-brand-200 md:py-4 md:text-lg md:px-10 transition-all">
-                Masuk
+            <a asp-controller="Account" asp-action="Register" class="inline-flex items-center gap-2 px-12 py-5 text-lg font-bold text-indigo-600 bg-white rounded-2xl shadow-2xl hover:shadow-3xl hover:scale-105 transition-all">
+                <span>Mulai Sekarang - Gratis!</span>
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                </svg>
             </a>
         }
     </div>
 </div>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
-        <!-- Feature 1 -->
-        <div class="bg-white rounded-xl shadow-md p-6 border border-slate-100 hover:shadow-lg transition-shadow">
-            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4 text-blue-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
-            </div>
-            <h3 class="text-lg font-semibold text-slate-900 mb-2">Pertanyaan Realistis</h3>
-            <p class="text-slate-500">Kumpulan pertanyaan yang sering muncul dalam wawancara kerja professional.</p>
-        </div>
-
-        <!-- Feature 2 -->
-        <div class="bg-white rounded-xl shadow-md p-6 border border-slate-100 hover:shadow-lg transition-shadow">
-            <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4 text-indigo-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            </div>
-            <h3 class="text-lg font-semibold text-slate-900 mb-2">Penilaian AI</h3>
-            <p class="text-slate-500">Analisis jawaban menggunakan Machine Learning untuk memberikan skor objektif.</p>
-        </div>
-
-        <!-- Feature 3 -->
-        <div class="bg-white rounded-xl shadow-md p-6 border border-slate-100 hover:shadow-lg transition-shadow">
-            <div class="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center mb-4 text-emerald-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-            </div>
-            <h3 class="text-lg font-semibold text-slate-900 mb-2">Feedback Membangun</h3>
-            <p class="text-slate-500">Dapatkan saran perbaikan untuk meningkatkan kualitas jawaban Anda.</p>
-        </div>
-    </div>
-</div>
