@@ -22,8 +22,10 @@ namespace Siwate.Web.Controllers
             _mlService = mlService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            ViewBag.QuestionCount = await _context.Questions.CountAsync();
+            ViewBag.UserCount = await _context.Users.CountAsync();
             return View();
         }
 

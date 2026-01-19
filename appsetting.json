@@ -1,0 +1,19 @@
+{
+    "Logging": {
+        "LogLevel": {
+            "Default": "Information",
+            "Microsoft.AspNetCore": "Warning"
+        }
+    },
+    "AllowedHosts": "*",
+    "ConnectionStrings": {
+        "DefaultConnection": "Host=db.wwsexqihcuyayfieirpm.supabase.co;Port=5432;Database=postgres;Username=postgres;Password=proyekpbo123"
+    },
+    "Supabase": {
+        "Url": "https://wwsexqihcuyayfieirpm.supabase.co",
+        "Key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind3c2V4cWloY3V5YXlmaWVpcnBtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU3NzAzMDUsImV4cCI6MjA4MTM0NjMwNX0.eHKcwgeSSdy7BjqQy9saI90rs_6_1_xgoUweiR1YIAQ",
+        "ServiceRole": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind3c2V4cWloY3V5YXlmaWVpcnBtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTc3MDMwNSwiZXhwIjoyMDgxMzQ2MzA1fQ.6t9ABD1FrS-vXqCncF9U9cua3_LAxZjYzKZ4OB90e3g"
+    },
+    "MLModelPath": "interview_model.zip",
+    "GeminiApiKey": "AIzaSyDj0YbHxwFvHPfoCbfwjRDzDrTCt3qiwdg"
+}
