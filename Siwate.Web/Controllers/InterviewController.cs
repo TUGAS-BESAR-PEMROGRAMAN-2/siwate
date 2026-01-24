@@ -101,18 +101,7 @@ namespace Siwate.Web.Controllers
             return View(result);
         }
 
-        public async Task<IActionResult> History()
-        {
-            var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            var history = await _context.InterviewResults
-                .Include(r => r.Answer)
-                    .ThenInclude(a => a.Question)
-                .Where(r => r.UserId == userId)
-                .OrderByDescending(r => r.CreatedAt)
-                .ToListAsync();
 
-            return View(history);
-        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -138,7 +127,7 @@ namespace Siwate.Web.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Message"] = "Riwayat berhasil dihapus.";
-            return RedirectToAction(nameof(History));
+            return RedirectToAction("Profile", "Account");
         }
     }
 }

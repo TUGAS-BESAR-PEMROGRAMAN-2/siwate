@@ -1,0 +1,143 @@
+@model Siwate.Web.Models.ProfileViewModel
+
+@{
+    ViewData["Title"] = "Profil Saya";
+}
+
+<div class="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-slate-800">Profil Saya</h1>
+        <p class="text-slate-500 mt-1">Kelola informasi pribadi dan riwayat simulasi Anda.</p>
+    </div>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="mb-6 bg-green-100 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center gap-2" role="alert">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            <span>@TempData["Message"]</span>
+        </div>
+    }
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Left Column: User Profile Card -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden sticky top-8">
+                <div class="h-32 bg-gradient-to-r from-brand-500 to-indigo-600"></div>
+                <div class="px-6 pb-6">
+                    <div class="relative flex justify-center -mt-16 mb-4">
+                        <div class="w-32 h-32 rounded-full border-4 border-white bg-white shadow-md flex items-center justify-center overflow-hidden">
+                             <!-- Initials Avatar -->
+                            <span class="text-4xl font-bold text-brand-600">@Model.User.Name.Substring(0, 1).ToUpper()</span>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mb-6">
+                        <h2 class="text-xl font-bold text-slate-800">@Model.User.Name</h2>
+                        <p class="text-slate-500">@Model.User.Email</p>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mt-2 capitalize">
+                            @Model.User.Role
+                        </span>
+                    </div>
+
+                    <div class="border-t border-slate-100 pt-4 space-y-3">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-500">Bergabung</span>
+                            <span class="font-medium text-slate-900">@Model.User.CreatedAt.ToString("dd MMM yyyy")</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-500">Total Simulasi</span>
+                            <span class="font-medium text-slate-900">@Model.History.Count</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <form asp-controller="Account" asp-action="Logout" method="get"> 
+                           <!-- Logout is GET in controller? Check controller. Actually it is: public async Task<IActionResult> Logout() { ... }. Usually GET if link, but better check. -->
+                           <!-- Wait, standard Logout is often POST. But in your code: public async Task<IActionResult> Logout() without [HttpPost] so it is GET. -->
+                           <a asp-controller="Account" asp-action="Logout" class="block w-full text-center px-4 py-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors font-medium">
+                               Keluar
+                           </a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: History -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                    <h3 class="font-bold text-lg text-slate-800">Riwayat Simulasi</h3>
+                    <a asp-controller="Interview" asp-action="Start" class="text-sm bg-brand-600 hover:bg-brand-700 text-white px-3 py-1.5 rounded-lg transition-colors font-medium">
+                        + Simulasi Baru
+                    </a>
+                </div>
+
+                @if (!Model.History.Any())
+                {
+                    <div class="p-12 text-center">
+                        <div class="mx-auto h-16 w-16 text-slate-200 mb-3">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <h4 class="text-base font-semibold text-slate-900">Belum ada riwayat</h4>
+                        <p class="text-sm text-slate-500 mt-1">Mulai latihan wawancara pertama Anda hari ini.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-slate-100">
+                            <thead class="bg-slate-50/50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Tanggal</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Pertanyaan</th>
+                                    <th class="px-6 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Skor</th>
+                                    <th class="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                @foreach (var item in Model.History)
+                                {
+                                    string scoreColor = item.Score >= 80 ? "text-emerald-600 bg-emerald-50 border-emerald-100" : 
+                                                        (item.Score >= 60 ? "text-yellow-600 bg-yellow-50 border-yellow-100" : "text-red-600 bg-red-50 border-red-100");
+                                    
+                                    <tr class="hover:bg-slate-50/50 transition-colors group">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+                                            @item.CreatedAt.ToString("dd MMM yyyy")
+                                            <span class="block text-xs text-slate-400">@item.CreatedAt.ToString("HH:mm")</span>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <p class="text-sm font-medium text-slate-800 line-clamp-2" title="@item.Answer?.Question?.QuestionText">
+                                                @item.Answer?.Question?.QuestionText
+                                            </p>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                                            <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-bold border @scoreColor">
+                                                @item.Score
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                            <div class="flex justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
+                                                <a asp-controller="Interview" asp-action="Result" asp-route-id="@item.Id" class="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors" title="Lihat">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                                </a>
+                                                <form asp-controller="Interview" asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Hapus riwayat ini?');">
+                                                    <button type="submit" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Hapus">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

@@ -22,10 +22,7 @@ namespace Siwate.Web.Services
             _httpClient = new HttpClient();
         }
 
-        public void Train(IEnumerable<Dataset> data)
-        {
-            // Gemini is pre-trained. No action needed.
-        }
+
 
         public async Task<(float Score, string Feedback)> PredictAsync(string questionText, string answerText)
         {

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Siwate.Web.Data;
 using Siwate.Web.Models;
+using Siwate.Web.Models;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -83,6 +84,31 @@ namespace Siwate.Web.Controllers
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Login");
+        }
+
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        public async Task<IActionResult> Profile()
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdStr)) return RedirectToAction("Login");
+
+            var userId = System.Guid.Parse(userIdStr);
+
+            var user = await _context.Users.FindAsync(userId);
+            var history = await _context.InterviewResults
+                .Include(r => r.Answer)
+                    .ThenInclude(a => a.Question)
+                .Where(r => r.UserId == userId)
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync();
+
+            var viewModel = new ProfileViewModel
+            {
+                User = user,
+                History = history
+            };
+
+            return View(viewModel);
         }
     }
 }
