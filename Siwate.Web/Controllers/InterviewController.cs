@@ -28,7 +28,14 @@ namespace Siwate.Web.Controllers
             return View();
         }
 
-        public async Task<IActionResult> Start()
+        [HttpGet]
+        public IActionResult CheckIn()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> BeginInterview()
         {
             // Pick a random question
             var count = await _context.Questions.CountAsync();
@@ -44,34 +51,49 @@ namespace Siwate.Web.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> SubmitAnswer(Guid questionId, string answerText)
+        public async Task<IActionResult> SubmitAnswer(Guid questionId, string answerText, int durationSeconds = 0, int attempt = 1, string previousAnswer = "")
         {
+            var question = await _context.Questions.FindAsync(questionId);
+
             if (string.IsNullOrWhiteSpace(answerText))
             {
-                // Retrieve question again to show view
-                var question = await _context.Questions.FindAsync(questionId);
                 ViewBag.Error = "Jawaban tidak boleh kosong.";
                 return View("Question", question);
             }
 
+            // Combine previous answer if this is a follow-up
+            string fullContextAnswer = string.IsNullOrEmpty(previousAnswer) 
+                ? answerText 
+                : $"[JAWABAN AWAL]: {previousAnswer} \n[JAWABAN LANJUTAN]: {answerText}";
+
+            // Predict with AI
+            var aiResult = await _mlService.PredictAsync(question.QuestionText, fullContextAnswer, durationSeconds);
+
+            // DECISION ENGINE: If Generic & First Attempt -> Loop back
+            if (aiResult.IsGeneric && attempt < 2)
+            {
+                ViewBag.FollowUpQuestion = aiResult.FollowUpQuestion;
+                ViewBag.PreviousAnswer = fullContextAnswer; // Store context
+                ViewBag.Attempt = attempt + 1;
+                
+                // Return same view but with FollowUp context
+                return View("Question", question);
+            }
+
+            // Finalize Result
             var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-            // 1. Save Answer
+            // 1. Save Answer (Final Concatenated Answer)
             var answer = new Answer
             {
                 QuestionId = questionId,
                 UserId = userId,
-                AnswerText = answerText
+                AnswerText = fullContextAnswer
             };
             _context.Answers.Add(answer);
             await _context.SaveChangesAsync();
 
-            // 2. Predict Score
-            // 2. Predict Score & Feedback via Gemini (Async)
-            var questionObj = await _context.Questions.FindAsync(questionId);
-            var aiResult = await _mlService.PredictAsync(questionObj.QuestionText, answerText);
-
-            // 4. Simpan Hasil
+            // 2. Save Result
             var result = new InterviewResult
             {
                 UserId = userId,

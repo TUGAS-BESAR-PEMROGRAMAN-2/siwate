@@ -24,27 +24,36 @@ namespace Siwate.Web.Services
 
 
 
-        public async Task<(float Score, string Feedback)> PredictAsync(string questionText, string answerText)
+        public async Task<GeminiResult> PredictAsync(string questionText, string answerText, int durationSeconds)
         {
             if (string.IsNullOrWhiteSpace(_apiKey))
                 throw new Exception("Gemini API Key belum dikonfigurasi di appsettings.json");
 
             var prompt = $@"
-Anda adalah Asisten HRD Profesional. Tugas Anda menilai jawaban wawancara kerja.
+Anda adalah System Interview AI yang Cerdas.
+Tugas: Analisis jawaban kandidat untuk menentukan kualitas, kedalaman, dan perilaku (berdasarkan waktu jawab).
 
 PERTANYAAN: ""{questionText}""
 JAWABAN KANDIDAT: ""{answerText}""
+DURASI MENJAWAB: {durationSeconds} detik.
 
-INSTRUKSI PENILAIAN:
-1. Validasi Bahasa: Jika jawaban BUKAN dalam Bahasa Indonesia, berikan Skor 0 dan Feedback ""Mohon jawab menggunakan Bahasa Indonesia.""
-2. Validasi Relevansi: Jika jawaban Melenceng/Tidak Nyambung/Gibberish/Asal-asalan, berikan Skor 0-10.
-3. Kualitas: Nilai berdasarkan kejelasan, metode STAR (Situation, Task, Action, Result), dan profesionalisme.
-4. Jangan tertipu panjang teks. Jawaban panjang tapi tidak berbobot harus nilai rendah.
+LOGIKA KEPUTUSAN:
+1. JIKA jawaban terlalu singkat (kurang dari 5 kata) ATAU sangat umum (cliche) ATAU tidak menjawab inti masalah:
+   - Set ""isGeneric"": true
+   - Buat ""followUpQuestion"": Pertanyaan pancingan untuk menggali lebih dalam detail STAR (Situation, Task, Action, Result) yang hilang.
+2. JIKA jawaban cukup detail DAN relevan:
+   - Set ""isGeneric"": false
+   - Berikan ""score"" (0-100) dan ""feedback"" seperti biasa.
+3. PERTIMBANGKAN WAKTU:
+   - Jika durasi < 10 detik untuk jawaban panjang -> Indikasi Copy-Paste -> Kurangi nilai.
+   - Jika durasi sangat lama (> 3 menit) -> Pertimbangkan keragu-raguan.
 
 OUTPUT WAJIB JSON (Tanpa Markdown):
 {{
-  ""score"": (angka 0-100),
-  ""feedback"": ""(kalimat saran singkat max 30 kata)""
+  ""score"": (0-100, jika isGeneric=true berikan 0),
+  ""feedback"": ""(saran perbaikan atau alasan butuh follow-up)"",
+  ""isGeneric"": (true/false),
+  ""followUpQuestion"": ""(isi hanya jika isGeneric=true, jika tidak kosongkan string)""
 }}
 ";
             
@@ -68,7 +77,7 @@ OUTPUT WAJIB JSON (Tanpa Markdown):
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync();
-                return (0, $"Error AI: {response.StatusCode} - {error}");
+                return new GeminiResult { Score = 0, Feedback = $"Error AI: {response.StatusCode}" };
             }
 
             var resultJson = await response.Content.ReadAsStringAsync();
@@ -87,18 +96,12 @@ OUTPUT WAJIB JSON (Tanpa Markdown):
                 textResponse = textResponse.Replace("```json", "").Replace("```", "").Trim();
 
                 var aiResult = JsonSerializer.Deserialize<GeminiResult>(textResponse, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                return (aiResult.Score, aiResult.Feedback);
+                return aiResult;
             }
             catch
             {
-                return (0, "Gagal memproses respons AI.");
+                return new GeminiResult { Score = 0, Feedback = "Gagal memproses respons AI." };
             }
         }
-    }
-
-    class GeminiResult
-    {
-        public float Score { get; set; }
-        public string Feedback { get; set; }
     }
 }

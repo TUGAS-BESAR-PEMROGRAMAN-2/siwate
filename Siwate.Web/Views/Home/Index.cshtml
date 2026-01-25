@@ -35,7 +35,7 @@
         <div class="mt-12 flex flex-col sm:flex-row justify-center gap-4">
             @if (User.Identity.IsAuthenticated)
             {
-                <a asp-controller="Interview" asp-action="Index" class="group relative inline-flex items-center justify-center gap-2 px-10 py-4 text-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:scale-105 transition-all">
+                <a asp-controller="Interview" asp-action="CheckIn" class="group relative inline-flex items-center justify-center gap-2 px-10 py-4 text-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:scale-105 transition-all">
                     <svg class="w-6 h-6 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                     </svg>
