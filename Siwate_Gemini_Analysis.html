@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisis Integrasi Gemini AI - Siwate.Web</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+    </script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 210mm;
+            /* A4 width */
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #fff;
+        }
+
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+        }
+
+        h3 {
+            color: #16a085;
+        }
+
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: Consolas, monospace;
+            color: #e74c3c;
+        }
+
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .node-box {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            border-left: 5px solid #3498db;
+        }
+
+        @media print {
+            body {
+                max-width: 100%;
+                padding: 0;
+            }
+
+            .no-print {
+                display: none;
+            }
+
+            h1,
+            h2 {
+                page-break-after: avoid;
+            }
+
+            pre,
+            blockquote {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="no-print"
+        style="background: #e8f4fd; padding: 15px; border-radius: 5px; margin-bottom: 20px; text-align: center; border: 1px solid #b6d4fe;">
+        <strong>💡 Tips:</strong> Tekan `Ctrl + P` (atau `Cmd + P` di Mac) untuk menyimpan halaman ini sebagai
+        <strong>PDF</strong>.
+    </div>
+
+    <h1>Analisis Integrasi Gemini AI - Siwate.Web</h1>
+    <p>Dokumen ini menjelaskan alur teknis dan logika penggunaan Google Gemini AI dalam proyek Siwate.Web.</p>
+
+    <h2>1. Ringkasan Penggunaan</h2>
+    <p>Gemini AI difungsikan sebagai <strong>"Virtual Interviewer"</strong> dan <strong>Decision Engine</strong>. Sistem
+        tidak hanya menyimpan jawaban, tetapi menganalisisnya secara <em>real-time</em> untuk dua tujuan:</p>
+    <ul>
+        <li><strong>Validasi Kualitas (Quality Assurance):</strong> Mendeteksi jawaban asal-asalan, terlalu singkat,
+            atau tidak relevan.</li>
+        <li><strong>Penilaian Otomatis (Auto-Grading):</strong> Memberikan skor (0-100) dan umpan balik konstruktif
+            (feedback).</li>
+    </ul>
+
+    <h2>2. Alur Logika (Flowchart)</h2>
+    <p>Berikut adalah visualisasi perjalanan data dari input pengguna hingga diproses oleh Gemini:</p>
+
+    <div class="mermaid">
+        sequenceDiagram
+        participant User as User (Browser)
+        participant Ctrl as InterviewController
+        participant Svc as GeminiService
+        participant API as Google Gemini API
+        participant DB as Database
+
+        User->>Ctrl: SubmitAnswer(QuestionId, AnswerText)
+        Ctrl->>Svc: PredictAsync(Question, Answer)
+
+        Note over Svc: 1. Validasi API Key<br />2. Susun Prompt (Role: Interviewer)<br />3. Masukkan Kriteria Penilaian
+
+        Svc->>API: POST /v1beta/models/gemini-3-flash-preview
+        API-->>Svc: JSON Response (Score, Feedback, IsGeneric)
+        Svc-->>Ctrl: GeminiResult Object
+
+        alt Jawaban Terlalu Umum (IsGeneric = true)
+        Ctrl->>User: Tanyaka Follow-up Question
+        else Jawaban Cukup Detail
+        Ctrl->>DB: Simpan Answer & InterviewResult
+        Ctrl->>User: Tampilkan Halaman Result
+        end
+    </div>
+    <div class="">
+        <p>Sequence tersebut menunjukkan alur ketika pengguna mengirim jawaban, lalu sistem meneruskannya ke Google Gemini API
+        melalui GeminiService untuk dinilai. API mengembalikan skor dan penanda apakah jawabannya terlalu umum. Jika jawabannya
+        generik, sistem meminta pengguna memberikan jawaban lanjutan; jika tidak, jawaban dan hasil evaluasinya disimpan ke
+        database lalu ditampilkan. Alur ini efisien, tetapi bertumpu pada satu indikator (IsGeneric) sehingga berpotensi kurang
+        akurat dalam kasus jawaban yang tidak generik tetapi tetap kurang relevan.</p>
+    </div>
+
+    <h2>3. Analisis Komponen (File-to-File)</h2>
+
+    <div class="node-box">
+        <h3>A. Services/GeminiService.cs (Otak Sistem)</h3>
+        <p>Kelas ini menangani komunikasi langsung dengan Google API.</p>
+        <ul>
+            <li><strong>Prompt Engineering:</strong> Instruksi khusus diberikan ke AI di baris 32-58.
+                <br><em>"Anda adalah System Interview AI... Jika jawaban < 5 kata, set isGeneric: true..."</em>
+            </li>
+            <li><strong>Output Formatting:</strong> Memaksa AI memberikan balasan dalam format JSON murni agar mudah
+                dibaca oleh kode program.</li>
+            <li><strong>Error Handling:</strong> Jika API gagal/error, nilai default (Skor 0) dikembalikan agar aplikasi
+                tidak crash.</li>
+        </ul>
+    </div>
+
+    <div class="node-box">
+        <h3>B. Services/IMachineLearningService.cs (Kontrak)</h3>
+        <p>Interface yang mendefinisikan struktur data hasil analisis:</p>
+        <pre>
+public class GeminiResult
+{
+    public float Score { get; set; }
+    public string Feedback { get; set; }
+    public bool IsGeneric { get; set; } // Flag penentu apakah butuh follow-up
+    public string FollowUpQuestion { get; set; }
+}
+</pre>
+    </div>
+
+    <div class="node-box">
+        <h3>C. Controllers/InterviewController.cs (Pengendali)</h3>
+        <p>Engine keputusan utama ada di method <code>SubmitAnswer</code>:</p>
+        <ol>
+            <li>Menerima input dari Form HTML.</li>
+            <li>Menggabungkan jawaban (jika ini adalah jawaban lanjutan dari follow-up sebelumnya).</li>
+            <li>Memanggil <code>PredictAsync</code>.</li>
+            <li><strong>Logika Percabangan:</strong>
+                <ul>
+                    <li>Jika <code>IsGeneric == true</code> DAN <code>Attempt < 2</code>: <strong>STOP</strong>. Jangan
+                        simpan. Kembalikan ke User dengan pertanyaan pancingan (Follow-up).</li>
+                    <li>Jika <code>IsGeneric == false</code> ATAU sudah <code>Attempt >= 2</code>:
+                        <strong>LANJUT</strong>. Simpan ke database dan tampilkan hasil.
+                    </li>
+                </ul>
+            </li>
+        </ol>
+    </div>
+
+    <div class="node-box">
+        <h3>D. Program.cs (Konfigurasi)</h3>
+        <p>Mendaftarkan service ke dalam sistem Dependency Injection (DI) agar bisa dipanggil otomatis oleh Controller.
+        </p>
+        <code>builder.Services.AddScoped&lt;IMachineLearningService, GeminiService&gt;();</code>
+    </div>
+
+
+    <h2>4. Rangkuman Proyek (Executive Summary)</h2>
+    <div class="node-box" style="border-left-color: #9b59b6;">
+        <p><strong>Nama Proyek:</strong> Siwate (Sistem Wawancara Terpadu)</p>
+        <p><strong>Tujuan:</strong> Menggantikan peran pewawancara manusia dalam tahap screening awal menggunakan AI.
+        </p>
+        <p><strong>Fitur Utama:</strong></p>
+        <ul>
+            <li><strong>Penilaian Otomatis:</strong> Skor 0-100 berdasarkan kualitas jawaban.</li>
+            <li><strong>Deteksi Jawaban Asal:</strong> Mengenali jawaban pendek/copy-paste.</li>
+            <li><strong>Interaktif:</strong> Mengajukan pertanyaan follow-up jika jawaban user kurang detail.</li>
+        </ul>
+    </div>
+
+
+    <h2>6. Analisis Fitur Kamera (Tech & AI Check)</h2>
+    <div class="node-box" style="border-left-color: #e74c3c;">
+        <p><strong>Fungsi Kamera:</strong> Digunakan di halaman <em>Check-In</em> untuk simulasi kesiapan teknis
+            (Pre-flight Check).</p>
+        <p><strong>Teknologi:</strong></p>
+        <ul>
+            <li><strong>Face Detection:</strong> Menggunakan library JavaScript <code>face-api.js</code> di sisi Client
+                (Browser).</li>
+            <li><strong>Lighting Check:</strong> Analisis pixel brightness sederhana menggunakan Canvas API HTML5.</li>
+        </ul>
+        <div
+            style="background-color: #fdeaea; padding: 10px; border-radius: 4px; border: 1px solid #eba5a5; margin-top: 10px;">
+            <strong>Apakah Menggunakan Gemini?</strong> <span style="color: #c0392b; font-weight: bold;">TIDAK.</span>
+            <br>
+            Analisis video terjadi sepenuhnya di browser user (Local). Data video/wajah <strong>tidak dikirim</strong>
+            ke server maupun API Gemini. Gemini hanya memproses teks (NLP) untuk analisis jawaban.
+        </div>
+    </div>
+
+
+    <h2>7. Bedah Controller (Logic Layer)</h2>
+    <div class="node-box" style="border-left-color: #34495e;">
+        <h3>1. InterviewController (InterviewController.cs)</h3>
+        <p><em>Ini adalah Controller UTAMA dalam aplikasi ini.</em></p>
+        <p><strong>Fungsi:</strong> Mengatur seluruh alur simulasi wawancara.</p>
+        <p><strong>Action Penting:</strong></p>
+        <ul>
+            <li><code>CheckIn()</code>: Menampilkan halaman pengecekan kamera/mic.</li>
+            <li><code>BeginInterview()</code>: Memulai sesi dan mengambil pertanyaan acak dari database.</li>
+            <li><code>SubmitAnswer()</code>: Menerima jawaban user, mengirimnya ke Gemini AI
+                (<code>_mlService.PredictAsync</code>), dan menentukan apakah perlu follow-up atau langsung simpan
+                hasil.</li>
+            <li><code>Result()</code>: Menampilkan skor dan feedback akhir.</li>
+        </ul>
+        <p><strong>Akses:</strong> Hanya bisa diakses oleh user yang sudah login (<code>[Authorize]</code>).</p>
+
+        <h3>2. AccountController (AccountController.cs)</h3>
+        <p><em>Bertanggung jawab atas Manajemen Pengguna & Autentikasi.</em></p>
+        <p><strong>Fungsi:</strong> Menangani pendaftaran, login, dan logout.</p>
+        <p><strong>Action Penting:</strong></p>
+        <ul>
+            <li><code>Login(email, password)</code>: Memverifikasi kredensial user & membuat cookie sesi login.</li>
+            <li><code>Register(user)</code>: Mendaftarkan akun baru ke database.</li>
+            <li><code>Logout()</code>: Menghapus sesi login.</li>
+            <li><code>Profile()</code>: Menampilkan riwayat wawancara user (history).</li>
+        </ul>
+
+        <h3>3. AdminController (AdminController.cs)</h3>
+        <p><em>Halaman khusus untuk Administrator.</em></p>
+        <p><strong>Fungsi:</strong> Mengelola data master seperti Bank Soal.</p>
+        <p><strong>Keamanan:</strong> Dilindungi dengan <code>[Authorize(Roles = "admin")]</code>, jadi user biasa tidak
+            bisa masuk sini.</p>
+        <p><strong>Action Penting:</strong></p>
+        <ul>
+            <li><code>Index()</code>: Dashboard admin (menampilkan jumlah user & soal).</li>
+            <li><code>Questions()</code>: Melihat daftar semua pertanyaan interview.</li>
+            <li><code>AddQuestion()</code>: Menambah pertanyaan baru ke database.</li>
+            <li><code>DeleteQuestion()</code>: Menghapus pertanyaan.</li>
+        </ul>
+
+        <h3>4. HomeController (HomeController.cs)</h3>
+        <p><em>Controller standar/bawaan template ASP.NET Core.</em></p>
+        <p><strong>Fungsi:</strong> Menangani halaman statis & navigasi dasar.</p>
+        <p><strong>Action Penting:</strong></p>
+        <ul>
+            <li><code>Index()</code>: Menampilkan halaman depan (Landing Page).</li>
+            <li><code>Privacy()</code>: Halaman kebijakan privasi.</li>
+            <li><code>Error()</code>: Menangani tampilan jika terjadi error di aplikasi.</li>
+        </ul>
+    </div>
+
+    </div>
+
+    <h2>8. Fitur Suara (Speech-to-Text)</h2>
+    <div class="node-box" style="border-left-color: #e67e22;">
+        <p><strong>Fungsi:</strong> Mengubah suara user menjadi teks jawaban secara otomatis.</p>
+        <p><strong>Implementasi:</strong> Menggunakan <strong>Web Speech API (Native Browser)</strong>.</p>
+        <p><strong>Alur Kerja:</strong></p>
+        <ul>
+            <li>User klik tombol mikrofon di formulir jawaban.</li>
+            <li>Browser menangkap audio dan mengirimnya ke engine pengenal suara bawaan (misal Google Voice Engine di
+                Chrome).</li>
+            <li>Browser mengembalikan hasil transkrip teks (String).</li>
+            <li>JavaScript menempelkan teks tersebut ke dalam kolom `textarea`.</li>
+        </ul>
+        <div
+            style="background-color: #fff3cd; padding: 10px; border-radius: 4px; border: 1px solid #ffeeba; margin-top: 10px;">
+            <strong>Catatan:</strong> Fitur ini berjalan sepenuhnya di sisi Client (Browser). Server Siwate tidak
+            menerima file audio, melainkan hanya menerima teks hasil konversi.
+        </div>
+    </div>
+
+    </div>
+
+    <h2>9. Alur Proyek Lengkap (File-to-File Flow)</h2>
+    <div class="node-box" style="border-left-color: #8e44ad;">
+        <p>Berikut adalah perjalanan data lengkap dari User membuka aplikasi hingga mendapatkan hasil, beserta potongan
+            kode kuncinya.</p>
+
+        <h3>1. Landing & Login</h3>
+        <p><strong>Files:</strong> <code>HomeController.cs</code> &rarr; <code>AccountController.cs</code> &rarr;
+            <code>Views/Account/Login.cshtml</code>
+        </p>
+        <p>User masuk lewat halaman depan. Jika ingin interview, diarahkan login.</p>
+        <pre><code class="language-csharp">// AccountController.cs
+[HttpPost]
+public async Task&lt;IActionResult&gt; Login(string email, string password) {
+  // Cek database, jika cocok buat Cookie Auth
+  await HttpContext.SignInAsync(...);
+  return RedirectToAction("Index", "Home");
+}</code></pre>
+
+        <h3>2. Persiapan (Check-In)</h3>
+        <p><strong>Files:</strong> <code>InterviewController.cs</code> &rarr;
+            <code>Views/Interview/CheckIn.cshtml</code>
+        </p>
+        <p>User melakukan pengecekan hardware (Kamera/Mic/Wajah) di sisi browser.</p>
+        <pre><code class="language-javascript">// CheckIn.cshtml (JS)
+// Menggunakan face-api.js untuk deteksi lokal
+const detections = await faceapi.detectSingleFace(video, ...);
+if (detections) checks.face = true; // Buka tombol Mulai</code></pre>
+
+        <h3>3. Mulai Interview & Ambil Soal</h3>
+        <p><strong>Files:</strong> <code>InterviewController.cs (BeginInterview)</code> &rarr;
+            <code>Views/Interview/Question.cshtml</code>
+        </p>
+        <p>Sistem mengambil pertanyaan acak dari Database.</p>
+        <pre><code class="language-csharp">// InterviewController.cs
+public async Task&lt;IActionResult&gt; BeginInterview() {
+    // Ambil 1 pertanyaan random
+    var question = await _context.Questions.OrderBy(q => Guid.NewGuid()).FirstOrDefaultAsync();
+    return View("Question", question);
+}</code></pre>
+
+        <h3>4. Jawab Pertanyaan (Dengan Suara/Teks)</h3>
+        <p><strong>Files:</strong> <code>Views/Interview/Question.cshtml</code></p>
+        <p>User menjawab. Bisa ketik manual atau tekan tombol Mic (Web Speech API).</p>
+        <pre><code class="language-javascript">// Question.cshtml
+recognition.onresult = function(event) {
+    // Ubah suara jadi teks dan masukkan ke textarea
+    answerInput.value += event.results[0][0].transcript; 
+};</code></pre>
+
+        <h3>5. Submit & Analisis AI (Core Logic)</h3>
+        <p><strong>Files:</strong> <code>InterviewController.cs</code> &rarr; <code>GeminiService.cs</code> &rarr;
+            <code>Gemini API</code>
+        </p>
+        <p>Jawaban dikirim ke Backend. Controller memanggil Service AI.</p>
+        <pre><code class="language-csharp">// InterviewController.cs
+var aiResult = await _mlService.PredictAsync(question, answer, duration);
+
+// GeminiService.cs
+var prompt = "Analisis jawaban ini: " + answerText + ". Jika kependekan, set isGeneric=true";
+var response = await _httpClient.PostAsync(GEMINI_URL, prompt);</code></pre>
+
+        <h3>6. Decision Loop (Keputusan)</h3>
+        <p><strong>Files:</strong> <code>InterviewController.cs</code></p>
+        <p>Controller mengecek hasil dari AI.</p>
+        <pre><code class="language-csharp">// InterviewController.cs
+if (aiResult.IsGeneric && attempt < 2) {
+    // KICKBACK: Jangan simpan, tanya ulang user (Follow-up)
+    ViewBag.FollowUpQuestion = aiResult.FollowUpQuestion;
+    return View("Question", question);
+} else {
+    // SUCCESS: Simpan ke DB & Tampilkan Hasil
+    _context.InterviewResults.Add(new Result { Score = aiResult.Score ... });
+    await _context.SaveChangesAsync();
+    return RedirectToAction("Result");
+}</code></pre>
+
+        <h3>7. Hasil Akhir</h3>
+        <p><strong>Files:</strong> <code>Views/Interview/Result.cshtml</code></p>
+        <p>User melihat skor dan feedback dari AI.</p>
+    </div>
+
+    <div style="margin-top: 50px; font-size: 0.8em; color: #777; border-top: 1px solid #eee; pt: 10px;">
+        Generated by Antigravity Agent for Siwate Project Analysis.
+    </div>
+
+</body>
+
+</html>
