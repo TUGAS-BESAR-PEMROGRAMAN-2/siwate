@@ -30,33 +30,33 @@ namespace Siwate.Web.Services
                 throw new Exception("Gemini API Key belum dikonfigurasi di appsettings.json");
 
             var prompt = $@"
-Anda adalah System Interview AI yang Cerdas.
-Tugas: Analisis jawaban kandidat untuk menentukan kualitas, kedalaman, dan perilaku (berdasarkan waktu jawab).
+                Anda adalah System Interview AI yang Cerdas.
+                Tugas: Analisis jawaban kandidat untuk menentukan kualitas, kedalaman, dan perilaku (berdasarkan waktu jawab).
 
-PERTANYAAN: ""{questionText}""
-JAWABAN KANDIDAT: ""{answerText}""
-DURASI MENJAWAB: {durationSeconds} detik.
+                PERTANYAAN: ""{questionText}""
+                JAWABAN KANDIDAT: ""{answerText}""
+                DURASI MENJAWAB: {durationSeconds} detik.
 
-LOGIKA KEPUTUSAN:
-1. JIKA jawaban terlalu singkat (kurang dari 5 kata) ATAU sangat umum (cliche) ATAU tidak menjawab inti masalah:
-   - Set ""isGeneric"": true
-   - Buat ""followUpQuestion"": Pertanyaan pancingan untuk menggali lebih dalam detail STAR (Situation, Task, Action, Result) yang hilang.
-2. JIKA jawaban cukup detail DAN relevan:
-   - Set ""isGeneric"": false
-   - Berikan ""score"" (0-100) dan ""feedback"" seperti biasa.
-3. PERTIMBANGKAN WAKTU:
-   - Jika durasi < 10 detik untuk jawaban panjang -> Indikasi Copy-Paste -> Kurangi nilai.
-   - Jika durasi sangat lama (> 3 menit) -> Pertimbangkan keragu-raguan.
+                LOGIKA KEPUTUSAN:
+                1. JIKA jawaban terlalu singkat (kurang dari 5 kata) ATAU sangat umum (cliche) ATAU tidak menjawab inti masalah:
+                - Set ""isGeneric"": true
+                - Buat ""followUpQuestion"": Pertanyaan pancingan untuk menggali lebih dalam detail STAR (Situation, Task, Action, Result) yang hilang.
+                2. JIKA jawaban cukup detail DAN relevan:
+                - Set ""isGeneric"": false
+                - Berikan ""score"" (0-100) dan ""feedback"" seperti biasa.
+                3. PERTIMBANGKAN WAKTU:
+                - Jika durasi < 10 detik untuk jawaban panjang -> Indikasi Copy-Paste -> Kurangi nilai.
+                - Jika durasi sangat lama (> 3 menit) -> Pertimbangkan keragu-raguan.
 
-OUTPUT WAJIB JSON (Tanpa Markdown):
-{{
-  ""score"": (0-100, jika isGeneric=true berikan 0),
-  ""feedback"": ""(saran perbaikan atau alasan butuh follow-up)"",
-  ""isGeneric"": (true/false),
-  ""followUpQuestion"": ""(isi hanya jika isGeneric=true, jika tidak kosongkan string)""
-}}
-";
-            
+                OUTPUT WAJIB JSON (Tanpa Markdown):
+                {{
+                ""score"": (0-100, jika isGeneric=true berikan 0),
+                ""feedback"": ""(saran perbaikan atau alasan butuh follow-up)"",
+                ""isGeneric"": (true/false),
+                ""followUpQuestion"": ""(isi hanya jika isGeneric=true, jika tidak kosongkan string)""
+                }}
+                ";
+
             var requestBody = new
             {
                 contents = new[]
@@ -73,7 +73,7 @@ OUTPUT WAJIB JSON (Tanpa Markdown):
 
             var jsonContent = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
             var response = await _httpClient.PostAsync($"{GEMINI_URL}?key={_apiKey}", jsonContent);
-            
+
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync();
@@ -81,8 +81,8 @@ OUTPUT WAJIB JSON (Tanpa Markdown):
             }
 
             var resultJson = await response.Content.ReadAsStringAsync();
-            
-            try 
+
+            try
             {
                 using var doc = JsonDocument.Parse(resultJson);
                 var textResponse = doc.RootElement

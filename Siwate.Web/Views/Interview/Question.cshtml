@@ -85,27 +85,34 @@
     </div>
 </div>
 
+<script>
     /* Timer Logic */
     let seconds = 0;
     const timerDisplay = document.getElementById('timerDisplay');
     const durationInput = document.getElementById('durationSeconds');
 
-    setInterval(() => {
-        seconds++;
-        durationInput.value = seconds;
-        
-        const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
-        const secs = (seconds % 60).toString().padStart(2, '0');
-        timerDisplay.textContent = `${mins}:${secs}`;
-    }, 1000);
+    // Only start timer if elements exist to avoid null errors
+    if (timerDisplay && durationInput) {
+        setInterval(() => {
+            seconds++;
+            durationInput.value = seconds;
+            
+            const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const secs = (seconds % 60).toString().padStart(2, '0');
+            timerDisplay.textContent = `${mins}:${secs}`;
+        }, 1000);
+    }
 
     /* Speech-to-Text Logic (Web Speech API) */
     const startMic = document.getElementById('btnMic');
     const answerInput = document.getElementById('answerText');
+    
+    // Standard API or Webkit fallback
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     let recognition;
 
-    if ('webkitSpeechRecognition' in window) {
-        recognition = new webkitSpeechRecognition();
+    if (SpeechRecognition && startMic && answerInput) {
+        recognition = new SpeechRecognition();
         recognition.continuous = false;
         recognition.lang = 'id-ID'; // Bahasa Indonesia
         recognition.interimResults = false;
@@ -122,16 +129,38 @@
 
         recognition.onresult = function(event) {
             const transcript = event.results[0][0].transcript;
-            // Append to existing text
+            
+            // Append to existing text with a space if needed
             const currentText = answerInput.value;
-            answerInput.value = currentText ? currentText + " " + transcript : transcript;
+            if (currentText && currentText.trim().length > 0) {
+                 answerInput.value = currentText.trim() + " " + transcript;
+            } else {
+                 answerInput.value = transcript;
+            }
+        };
+
+        recognition.onerror = function(event) {
+            console.error("Speech recognition error", event.error);
+            startMic.classList.remove('bg-red-100', 'text-red-500', 'animate-pulse');
+            startMic.classList.add('bg-slate-100', 'text-slate-500');
+            if (event.error === 'not-allowed') {
+                alert("Akses mikrofon ditolak. Mohon izinkan akses mikrofon di browser Anda.");
+            }
         };
 
         startMic.addEventListener('click', () => {
-            recognition.start();
+            try {
+                recognition.start();
+            } catch (e) {
+                console.error("Failed to start recognition:", e);
+                // Handle case where recognition might already be started
+                recognition.stop();
+            }
         });
     } else {
-        startMic.style.display = 'none'; // Hide if not supported
-        console.log("Web Speech API not supported in this browser.");
+        if (startMic) {
+            startMic.style.display = 'none'; // Hide if not supported
+        }
+        console.log("Web Speech API not supported in this browser or elements missing.");
     }
 </script>
